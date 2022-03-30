@@ -49,28 +49,21 @@
       )
     }
 
-    function Favorites() {
+    function Favorites({ favorites }) {
       return (
         <ul className="favorites">
-          <CatItem img="https://cataas.com//cat/5e9970351b7a400011744233/says/inflearn" />
-          <CatItem img="https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript" />
+          {favorites.map((cat) => (
+            <CatItem img={cat} key={cat} />
+          ))}
         </ul>
       )
     }
 
-    const MainCard = ({ img }) => {
-      function handleHeartClick() {
-        console.log("하트 눌렀음");
-      }
-      function handleHeartMouseOver() {
-        console.log("하트 스쳐지나감");
-      }
+    const MainCard = ({ img, onHeartClick }) => {
       return (
-
         < div className="main-card" >
           <img src={img} alt="고양이" width="400" />
-          <button onClick={handleHeartClick}
-            onMouseOver={handleHeartMouseOver}
+          <button onClick={onHeartClick}
           >
             🤍
           </button>
@@ -83,33 +76,73 @@
       return <h1>{props.children}</h1>;
     };
 
-    const Form = () => {
-      function handleFormSubmit(event) {
-        event.preventDefault();
-        console.log("폼 전송됨");
+    const Form = ({ updateMainCat }) => {
+      const includesHangul = (text) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/i.test(text);
+      const [value, setValue] = React.useState('');
+      const [errorMessage, setErrorMessage] = React.useState()
+
+      function handleInputChange(e) {
+        const userValue = e.target.value;
+        setErrorMessage("");
+        if (includesHangul(userValue)) {
+          setErrorMessage('한글은 입력할 수 없습니다.')
+        }
+        setValue(userValue.toUpperCase());
       }
+
+      function handleFormSubmit(e) {
+        e.preventDefault();
+        setErrorMessage('')
+        if (value == '') {
+          setErrorMessage("빈 값으로 만들 수 없습니다.");
+          return;
+        }
+        updateMainCat();
+      }
+
       return (
         <form onSubmit={handleFormSubmit}>
           <input
             type="text"
             name="name"
+            value={value}
             placeholder="영어 대사를 ㄹ입력해주세요"
+            onChange={handleInputChange}
           />
           <button type="submit">생성</button>
+          <p style={{ color: "red" }}>{errorMessage}</p>
         </form>
       );
     };
+    const App = () => {
+      const CAT1 = "https://cataas.com/cat/60b73094e04e18001194a309/says/react";
+      const CAT2 = "https://cataas.com//cat/5e9970351b7a400011744233/says/inflearn";
+      const CAT3 = "https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript";
+      const [counter, setCounter] = React.useState(1);
+      const [mainCat, setMainCat] = React.useState(CAT1);
+      const [favorites, setFavorites] = React.useState([CAT1, CAT2]);
 
-    const app = (
-      <div>
-        <Title> 1번째 고양이 가라사대 </Title>
-        <Form />
-        <MainCard img="https://cataas.com/cat/60b73094e04e18001194a309/says/react"></MainCard>
-        <Favorites />
-      </div>
-    );
+      function updateMainCat() {
+        setMainCat(CAT2);
+        setCounter(counter + 1);
+      }
+
+      function handleHeartClick() {
+        setFavorites([...favorites, CAT3]) //기존에 있는 배열에 CAT3만 추가
+      }
+
+      return (
+        <div>
+          <Title> {counter}번째 고양이 가라사대 </Title>
+          <Form updateMainCat={updateMainCat} />
+          <MainCard img={mainCat} onHeartClick={handleHeartClick}></MainCard>
+          <Favorites favorites={favorites} />
+        </div>
+      );
+    };
+
     const 여기다가그려 = document.querySelector('#app');
-    ReactDOM.render(app, 여기다가그려) //그린다
+    ReactDOM.render(<App />, 여기다가그려) //그린다
   </script>
 </body>
 
